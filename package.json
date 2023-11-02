@@ -1,0 +1,30 @@
+{
+  "name": "secretsantabot",
+  "version": "1.0.0",
+  "description": "This is secret Santa bot ho-ho-ho!",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm.cmd run compile",
+    "pretest": "npm.cmd run compile",
+    "posttest": "npm.cmd run lint"
+  },
+  "keywords": [
+    "bot",
+    "telegram",
+    "secret",
+    "santa",
+    "typescript"
+  ],
+  "author": "Cyberpancake3000",
+  "license": "ISC",
+  "devDependencies": {
+    "gts": "^5.2.0",
+    "typescript": "^5.2.2",
+    "@types/node": "20.8.2"
+  }
+}
