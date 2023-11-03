@@ -23,8 +23,11 @@
   "author": "Cyberpancake3000",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "20.8.2",
     "gts": "^5.2.0",
-    "typescript": "^5.2.2",
-    "@types/node": "20.8.2"
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "mongoose": "^8.0.0"
   }
 }
