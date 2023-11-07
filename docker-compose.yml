@@ -1,0 +1,14 @@
+version: '1'
+
+services:
+  bot:
+    build: .
+    working_dir: /code/
+    env_file:
+      - .env
+    restart: on-failure
+    networks:
+      - santa_network
+networks:
+  santa_network:
+    driver: bridge

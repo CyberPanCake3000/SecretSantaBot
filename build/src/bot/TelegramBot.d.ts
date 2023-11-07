@@ -1,0 +1,16 @@
+/// <reference types="node" />
+import { Telegraf, Context } from 'telegraf';
+export interface SessionData {
+    userId: number | undefined;
+    selectedEvent: Event | null;
+    role: string;
+    currentMessage: number;
+    currentPage: number;
+}
+export interface BotContext extends Context {
+    session: SessionData;
+}
+declare class TelegramBot extends Telegraf<BotContext> {
+    constructor(token: string);
+}
+export default TelegramBot;
