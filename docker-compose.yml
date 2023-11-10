@@ -1,12 +1,18 @@
-version: '1'
-
+version: '3'
 services:
-  bot:
+  santa-app:
     build: .
-    working_dir: /code/
-    env_file:
-      - .env
-    restart: on-failure
+    working_dir: /bot/
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    networks:
+      - santa_network
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
     networks:
       - santa_network
 networks:

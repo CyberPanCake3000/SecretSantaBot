@@ -1,4 +1,5 @@
 import {Telegraf, Context} from 'telegraf';
+import MongoConnect from '../dbConnection';
 
 export interface SessionData {
   userId: number | undefined;
@@ -13,8 +14,12 @@ export interface BotContext extends Context {
 }
 
 class TelegramBot extends Telegraf<BotContext> {
-  constructor(token: string) {
+  db: MongoConnect;
+
+  constructor(token: string, mongoUrl: string) {
     super(token);
+    this.db = new MongoConnect(mongoUrl);
+    this.db.connect();
   }
 }
 

@@ -7,18 +7,23 @@ class App {
 
   constructor() {
     this.configService = new ConfigService();
-    this.bot = new TelegramBot(this.configService.get('TG_APIKEY'));
-    this.bot.start(ctx => {
-      console.log('started');
-      ctx.reply('hello!');
-    });
-    console.log('hello!');
+    const tgAPI = this.configService.get('TG_APIKEY');
+    const dbUrl = this.configService.get('MONGODB_URL');
+    this.bot = new TelegramBot(tgAPI, dbUrl);
+  }
+
+  async start() {
     this.bot.launch();
   }
 }
 
 const main = async () => {
   const app = new App();
+  try {
+    await app.start();
+  } catch (error) {
+    console.error('Error during start:', error);
+  }
 };
 
 main();

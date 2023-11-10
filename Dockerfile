@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 
 FROM node:18-alpine
-RUN mkdir /code
-WORKDIR /code
+WORKDIR /bot
 COPY ["package.json", "package-lock.json*", "./"]
-RUN npm i
+RUN npm install
 COPY . .
 RUN npm run build
+CMD ["node", "dist/src/app.js"]
