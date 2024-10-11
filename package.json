@@ -1,14 +1,17 @@
 {
   "dependencies": {
-    "mongodb": "^6.9.0"
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.9.0",
+    "mongoose": "^8.7.1",
+    "telegraf": "^4.16.3"
   },
   "devDependencies": {
+    "@types/node": "20.12.7",
     "gts": "^5.3.1",
-    "typescript": "^5.6.3",
-    "@types/node": "20.12.7"
+    "typescript": "^5.6.3"
   },
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node build/index.js",
     "dev": "nodemon src/index.ts",
     "lint": "gts lint",
     "clean": "gts clean",
