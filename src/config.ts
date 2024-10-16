@@ -9,6 +9,6 @@ interface Config {
 const config: Config = {
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   mongodbConnString: process.env.MONGODB_CONN_STRING || '',
-}
+};
 
 export default config;

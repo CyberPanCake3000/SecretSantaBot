@@ -1,21 +1,14 @@
-import {Telegraf, Scenes, Context, session} from 'telegraf';
+import {Telegraf, Scenes} from 'telegraf';
 import {User} from '../../db/models/user';
-
-type MyWizardSession = Scenes.WizardSessionData;
-
-export interface MyContext extends Context {
-  scene: Scenes.SceneContextScene<MyContext, MyWizardSession>;
-  wizard: Scenes.WizardContextWizard<MyContext>;
-}
+import {MyContext} from '../../types';
 
 const isValidName = (name: string): boolean => {
-  // Регулярное выражение для проверки наличия только букв, цифр, пробелов и некоторых знаков препинания
   const nameRegex = /^[\p{L}\p{N}\s.,'-]+$/u;
   return name.length >= 2 && nameRegex.test(name);
 };
 
-const registerWizard = new Scenes.WizardScene<MyContext>(
-  'register',
+export const registrationWizard = new Scenes.WizardScene<MyContext>(
+  'registration',
   async ctx => {
     await ctx.reply('Пожалуйста, введите Ваше имя');
     return ctx.wizard.next();
@@ -68,10 +61,9 @@ const registerWizard = new Scenes.WizardScene<MyContext>(
   }
 );
 
-const stage = new Scenes.Stage<MyContext>([registerWizard]);
+const stage = new Scenes.Stage<MyContext>([registrationWizard]);
 
-export const registerCommand = (bot: Telegraf<MyContext>) => {
-  bot.use(session());
+export const registrationCommand = (bot: Telegraf<MyContext>) => {
   bot.use(stage.middleware());
-  bot.command('register', ctx => ctx.scene.enter('register'));
+  bot.command('registration', ctx => ctx.scene.enter('registration'));
 };
