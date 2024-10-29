@@ -1,5 +1,4 @@
 import mongoose, {Document, ObjectId, Schema} from 'mongoose';
-
 export interface IUser extends Document {
   _id: ObjectId;
   telegramId: number;
