@@ -3,7 +3,9 @@
     "dotenv": "^16.4.5",
     "mongodb": "^6.9.0",
     "mongoose": "^8.7.1",
-    "telegraf": "^4.16.3"
+    "nodemon": "^3.1.7",
+    "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/node": "20.12.7",

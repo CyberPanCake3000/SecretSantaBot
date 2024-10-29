@@ -3,7 +3,7 @@ import {User} from '../../db/models/user';
 import {MyContext} from '../../types';
 
 const isValidName = (name: string): boolean => {
-  const nameRegex = /^[\p{L}\p{N}\s.,'-]+$/u;
+  const nameRegex = /^[а-яёА-ЯЁa-zA-Z\s.,'-]+$/u;
   return name.length >= 2 && nameRegex.test(name);
 };
 
