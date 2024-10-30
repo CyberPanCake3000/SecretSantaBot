@@ -1,7 +1,7 @@
 import {Telegraf, Scenes} from 'telegraf';
 import {MyContext} from '../../../types';
 import {Group} from '../../../db/models/group';
-import {generateGroupCode} from '../../../utils/groupCodeGenerator';
+import {generateUniqueGroupCode} from '../../../utils/groupCodeGenerator';
 import {validateAndFormatDate} from '../../../utils/validateAndFormatDate';
 
 const isValidGroupName = (name: string): boolean => {
@@ -113,7 +113,7 @@ export const createGroupWizard = new Scenes.WizardScene<MyContext>(
     const groupData = ctx.scene.session.groupData;
 
     try {
-      const uniqueCode = generateGroupCode();
+      const uniqueCode = generateUniqueGroupCode();
 
       const newGroup = await Group.create({
         name: groupData.name,

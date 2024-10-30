@@ -1,3 +1,5 @@
+import {GroupCode} from '../db/models/groupCode';
+
 const ALLOWED_CHARACTERS = {
   NUMBERS: '23456789',
   LETTERS: 'ABCDEFGHJKLMNPQRSTUVWXYZ',
@@ -9,7 +11,7 @@ interface CodeGeneratorOptions {
   segmentLength?: number;
 }
 
-export function generateGroupCode(options: CodeGeneratorOptions = {}): string {
+function generateGroupCode(options: CodeGeneratorOptions = {}): string {
   const {length = 8, delimiter = '-', segmentLength = 4} = options;
 
   const allCharacters = ALLOWED_CHARACTERS.NUMBERS + ALLOWED_CHARACTERS.LETTERS;
@@ -31,13 +33,18 @@ export function generateGroupCode(options: CodeGeneratorOptions = {}): string {
   return code;
 }
 
-//TODO: ДОБАВИТЬ В БД ДОКУЕНТ УЖЕ СУЩЕСТВУЮЩИХ КОДОВ
-function isCodeUnique(code: string, existingCodes: Set<string>): boolean {
-  return !existingCodes.has(code);
+async function isCodeUnique(code: string): Promise<boolean> {
+  const existingCode = await GroupCode.findOne({code: code});
+  if (!existingCode) {
+    const newCode = new GroupCode({
+      code: code,
+    });
+    newCode.save();
+  }
+  return existingCode === null;
 }
 
-function generateUniqueGroupCode(
-  existingCodes: Set<string>,
+export function generateUniqueGroupCode(
   options: CodeGeneratorOptions = {}
 ): string {
   let code: string;
@@ -53,7 +60,7 @@ function generateUniqueGroupCode(
         'Не удалось сгенерировать уникальный код после 1000 попыток'
       );
     }
-  } while (!isCodeUnique(code, existingCodes));
+  } while (!isCodeUnique(code));
 
   return code;
 }
