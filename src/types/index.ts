@@ -1,4 +1,5 @@
 import {Context, Scenes} from 'telegraf';
+import {IGroup} from '../db/models/group';
 
 interface GroupWizardData {
   name?: string;
@@ -10,6 +11,8 @@ interface GroupWizardData {
 export interface MyWizardSession extends Scenes.WizardSessionData {
   registrationRequired?: boolean;
   groupData: GroupWizardData;
+  userGroups: string[];
+  groupToDelete: string;
 }
 
 export interface MyContext extends Context {

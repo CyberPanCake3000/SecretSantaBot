@@ -49,7 +49,7 @@ export function generateUniqueGroupCode(
 ): string {
   let code: string;
   let attempts = 0;
-  const maxAttempts = 1000; // Предохранитель от бесконечного цикла
+  const maxAttempts = 1000;
 
   do {
     code = generateGroupCode(options);
