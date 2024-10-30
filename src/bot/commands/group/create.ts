@@ -2,9 +2,10 @@ import {Telegraf, Scenes} from 'telegraf';
 import {MyContext} from '../../../types';
 import {Group} from '../../../db/models/group';
 import {generateGroupCode} from '../../../utils/groupCodeGenerator';
+import {validateAndFormatDate} from '../../../utils/validateAndFormatDate';
 
-const isValidName = (name: string): boolean => {
-  const nameRegex = /^[а-яёА-ЯЁa-zA-Z\s.,'-]+$/u;
+const isValidGroupName = (name: string): boolean => {
+  const nameRegex = /^[а-яёА-ЯЁa-zA-Z0-9\s.,'-]+$/u;
   return name.length >= 2 && nameRegex.test(name);
 };
 
@@ -13,23 +14,14 @@ const isValidPrice = (price: string): boolean => {
   return !isNaN(priceNumber) && priceNumber > 0;
 };
 
-const isValidDate = (dateString: string): boolean => {
-  const date = new Date(dateString);
-  const today = new Date();
-  return date > today && !isNaN(date.getTime());
-};
-
 export const createGroupWizard = new Scenes.WizardScene<MyContext>(
   'create',
-  // Шаг 1: Запрос названия группы
   async ctx => {
     await ctx.reply(
-      'Давайте создадим Вашу группу! Для начала введите название группы:'
+      'Давайте создадим Вашу группу! Для отмены создания группы введите команду /cancel. Для начала введите название группы:'
     );
     return ctx.wizard.next();
   },
-
-  // Шаг 2: Обработка названия и запрос минимальной стоимости подарка
   async ctx => {
     if (!ctx.message || !('text' in ctx.message)) {
       await ctx.reply('Пожалуйста, введите название группы текстом');
@@ -37,7 +29,7 @@ export const createGroupWizard = new Scenes.WizardScene<MyContext>(
     }
 
     const name = ctx.message.text;
-    if (!isValidName(name)) {
+    if (!isValidGroupName(name)) {
       await ctx.reply('Некорректное название. Попробуйте еще раз');
       return;
     }
@@ -48,8 +40,6 @@ export const createGroupWizard = new Scenes.WizardScene<MyContext>(
     );
     return ctx.wizard.next();
   },
-
-  // Шаг 3: Обработка минимальной стоимости и запрос максимальной
   async ctx => {
     if (
       !ctx.message ||
@@ -68,8 +58,6 @@ export const createGroupWizard = new Scenes.WizardScene<MyContext>(
     );
     return ctx.wizard.next();
   },
-
-  // Шаг 4: Обработка максимальной стоимости и запрос даты мероприятия
   async ctx => {
     if (
       !ctx.message ||
@@ -90,30 +78,31 @@ export const createGroupWizard = new Scenes.WizardScene<MyContext>(
 
     ctx.scene.session.groupData.maxPrice = maxPrice;
     await ctx.reply(
-      'Введите дату проведения мероприятия в формате YYYY-MM-DD:'
+      'Введите дату проведения мероприятия в формате ДД.ММ.ГГГГ:'
     );
     return ctx.wizard.next();
   },
-
-  // Шаг 5: Обработка даты и запрос информации о мероприятии
   async ctx => {
-    if (
-      !ctx.message ||
-      !('text' in ctx.message) ||
-      !isValidDate(ctx.message.text)
-    ) {
+    if (!ctx.message || !('text' in ctx.message)) {
+      await ctx.reply('Пожалуйста, введите дату в формате ДД.ММ.ГГГГ');
+      return;
+    }
+
+    const validationResult = validateAndFormatDate(ctx.message.text);
+
+    if (!validationResult.isValid || !validationResult.mongoDate) {
       await ctx.reply(
-        'Пожалуйста, введите корректную дату в формате YYYY-MM-DD'
+        validationResult.error ||
+          'Пожалуйста, введите корректную дату в формате ДД.ММ.ГГГГ'
       );
       return;
     }
 
-    ctx.scene.session.groupData.eventDate = new Date(ctx.message.text);
+    ctx.scene.session.groupData.eventDate = validationResult.mongoDate;
     await ctx.reply('Введите информацию о мероприятии:');
     return ctx.wizard.next();
   },
 
-  // Шаг 6: Финальный шаг - создание группы
   async ctx => {
     if (!ctx.message || !('text' in ctx.message)) {
       await ctx.reply('Пожалуйста, введите информацию текстом');
@@ -146,22 +135,21 @@ export const createGroupWizard = new Scenes.WizardScene<MyContext>(
             joinedAt: new Date(),
           },
         ],
-        allowedUsers: [], // Пока пустой массив
+        allowedUsers: [],
         santaPairs: [],
         drawHistory: [],
       });
 
       console.log(newGroup);
 
-      await ctx.reply(
-        'Группа успешно создана!\n\n' +
+      await ctx.replyWithHTML(
+        '🎅 Хо-хо-хо ваша группа успешно создана!\n\n' +
           `Название: ${groupData.name}\n` +
           `Дата мероприятия: ${groupData.eventDate!.toLocaleDateString()}\n` +
           `Стоимость подарка: ${groupData.minPrice} - ${groupData.maxPrice} руб.\n\n` +
-          `Уникальный код для приглашения участников: ${uniqueCode}\n\n` +
-          'Отправьте этот код участникам, чтобы они могли присоединиться к группе.'
+          `Уникальный код для приглашения участников:\n<code>${uniqueCode}</code>\n\n` +
+          'Отправь этот код участникам, чтобы они могли присоединиться к группе.'
       );
-
       return ctx.scene.leave();
     } catch (error) {
       console.error('Error creating group:', error);
