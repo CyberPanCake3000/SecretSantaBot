@@ -30,7 +30,7 @@ export const setWishesWizard = new Scenes.WizardScene<MyContext>(
       return;
     }
 
-    const wishes = ctx.message.text.trim();
+    const preferences = ctx.message.text.trim();
     const userId = ctx.from?.id;
 
     if (!userId) {
@@ -41,7 +41,7 @@ export const setWishesWizard = new Scenes.WizardScene<MyContext>(
     try {
       const user = await User.findOneAndUpdate(
         {telegramId: userId},
-        {wishes: wishes},
+        {preferences: preferences},
         {new: true}
       );
 

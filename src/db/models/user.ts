@@ -8,12 +8,12 @@ export interface IUser extends Document {
       groupId: ObjectId;
       groupName: String;
       role: String;
-      wishlist: String;
       participationStatus: String;
       giftStatus: String;
       notificationEnabled: Boolean;
     },
   ];
+  preferences: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,10 +34,6 @@ const UserGroupSchema = new Schema({
     required: true,
     enum: ['admin', 'participant'],
     default: 'participant',
-  },
-  wishlist: {
-    type: String,
-    default: '',
   },
   participationStatus: {
     type: String,
@@ -71,6 +67,11 @@ const UserSchema: Schema = new Schema(
     groups: {
       type: [UserGroupSchema],
       default: [],
+    },
+    preferences: {
+      type: String,
+      default: '',
+      required: true,
     },
   },
   {
