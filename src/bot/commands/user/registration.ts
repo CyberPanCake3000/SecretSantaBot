@@ -1,13 +1,13 @@
 import {Telegraf, Scenes} from 'telegraf';
-import {User} from '../../db/models/user';
-import {MyContext} from '../../types';
+import {User} from '../../../db/models/user';
+import {SantaContext} from '../../../types';
 
 const isValidName = (name: string): boolean => {
   const nameRegex = /^[а-яёА-ЯЁa-zA-Z\s.,'-]+$/u;
   return name.length >= 2 && nameRegex.test(name);
 };
 
-export const registrationWizard = new Scenes.WizardScene<MyContext>(
+export const registrationWizard = new Scenes.WizardScene<SantaContext>(
   'registration',
   async ctx => {
     await ctx.reply('Пожалуйста, введите Ваше имя');
@@ -48,7 +48,7 @@ export const registrationWizard = new Scenes.WizardScene<MyContext>(
         `Поздравляем, ${userName}! Вы успешно зарегистрированы в игре Secret Santa.`
       );
       await ctx.reply(
-        'Теперь вы можете установить свои пожелания с помощью команды /setwishes и бюджет с помощью /setbudget.'
+        'Теперь вы можете установить свои пожелания с помощью команды /setwishes'
       );
     } catch (error) {
       console.error('Ошибка при регистрации пользователя:', error);
@@ -61,9 +61,9 @@ export const registrationWizard = new Scenes.WizardScene<MyContext>(
   }
 );
 
-const stage = new Scenes.Stage<MyContext>([registrationWizard]);
+const stage = new Scenes.Stage<SantaContext>([registrationWizard]);
 
-export const registrationCommand = (bot: Telegraf<MyContext>) => {
+export const registrationCommand = (bot: Telegraf<SantaContext>) => {
   bot.use(stage.middleware());
   bot.command('registration', ctx => ctx.scene.enter('registration'));
 };

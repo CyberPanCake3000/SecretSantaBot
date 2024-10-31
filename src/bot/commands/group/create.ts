@@ -1,5 +1,5 @@
 import {Telegraf, Scenes} from 'telegraf';
-import {MyContext} from '../../../types';
+import {SantaContext} from '../../../types';
 import {Group} from '../../../db/models/group';
 import {generateUniqueGroupCode} from '../../../utils/groupCodeGenerator';
 import {validateAndFormatDate} from '../../../utils/validateAndFormatDate';
@@ -14,7 +14,7 @@ const isValidPrice = (price: string): boolean => {
   return !isNaN(priceNumber) && priceNumber > 0;
 };
 
-export const createGroupWizard = new Scenes.WizardScene<MyContext>(
+export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
   'create',
   async ctx => {
     await ctx.reply(
@@ -166,9 +166,9 @@ createGroupWizard.command('cancel', async ctx => {
   return ctx.scene.leave();
 });
 
-const stage = new Scenes.Stage<MyContext>([createGroupWizard]);
+const stage = new Scenes.Stage<SantaContext>([createGroupWizard]);
 
-export const createGroupCommand = (bot: Telegraf<MyContext>) => {
+export const createGroupCommand = (bot: Telegraf<SantaContext>) => {
   bot.use(stage.middleware());
   bot.command('create', ctx => ctx.scene.enter('create'));
 };

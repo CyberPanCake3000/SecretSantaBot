@@ -27,7 +27,7 @@ export interface IGroup extends Document {
       userTelegramId: number;
       username: string;
       joinedAt: Date;
-      participationStatus: string;
+      participationStatus: string; // pending/checked-in/canceled
     },
   ];
   santaPairs: [

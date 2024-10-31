@@ -1,12 +1,12 @@
 import {Telegraf, session} from 'telegraf';
 import config from '../config';
-import {MyContext} from './../types';
-import {registrationCommand} from './commands/registration';
-import {setWishesCommand} from './commands/setWishes';
+import {SantaContext} from './../types';
+import {registrationCommand} from './commands/user/registration';
+import {setWishesCommand} from './commands/user/setWishes';
 import {createGroupCommand} from './commands/group/create';
 import {deleteGroupCommand} from './commands/group/delete';
 
-const bot = new Telegraf<MyContext>(config.telegramBotToken);
+const bot = new Telegraf<SantaContext>(config.telegramBotToken);
 
 bot.use(session());
 

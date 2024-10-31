@@ -1,9 +1,9 @@
 import {Telegraf, Scenes} from 'telegraf';
-import {User} from '../../db/models/user';
-import {MyContext} from '../../types';
+import {User} from '../../../db/models/user';
+import {SantaContext} from '../../../types';
 import {registrationWizard} from './registration';
 
-export const setWishesWizard = new Scenes.WizardScene<MyContext>(
+export const setWishesWizard = new Scenes.WizardScene<SantaContext>(
   'setwishes',
   async ctx => {
     const userId = ctx.from?.id;
@@ -64,12 +64,12 @@ export const setWishesWizard = new Scenes.WizardScene<MyContext>(
   }
 );
 
-const stage = new Scenes.Stage<MyContext>([
+const stage = new Scenes.Stage<SantaContext>([
   setWishesWizard,
   registrationWizard,
 ]);
 
-export const setWishesCommand = (bot: Telegraf<MyContext>) => {
+export const setWishesCommand = (bot: Telegraf<SantaContext>) => {
   bot.use(stage.middleware());
   bot.command('setwishes', ctx => ctx.scene.enter('setwishes'));
 };

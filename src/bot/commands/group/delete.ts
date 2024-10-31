@@ -1,8 +1,8 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
-import {MyContext} from '../../../types';
+import {SantaContext} from '../../../types';
 import {Group} from '../../../db/models/group';
 
-export const deleteGroupWizard = new Scenes.WizardScene<MyContext>(
+export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
   'delete',
   async ctx => {
     const userId = ctx.from?.id;
@@ -143,9 +143,9 @@ deleteGroupWizard.action('cancel_delete', async ctx => {
   return ctx.scene.leave();
 });
 
-const stage = new Scenes.Stage<MyContext>([deleteGroupWizard]);
+const stage = new Scenes.Stage<SantaContext>([deleteGroupWizard]);
 
-export const deleteGroupCommand = (bot: Telegraf<MyContext>) => {
+export const deleteGroupCommand = (bot: Telegraf<SantaContext>) => {
   bot.use(stage.middleware());
   bot.command('delete', ctx => ctx.scene.enter('delete'));
 };
