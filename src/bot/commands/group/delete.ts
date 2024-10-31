@@ -1,6 +1,7 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
 import {SantaContext} from '../../../types';
 import {Group} from '../../../db/models/group';
+import {User} from '../../../db/models/user';
 
 export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
   'delete',
@@ -126,6 +127,17 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
 
     try {
       await Group.deleteOne({_id: groupId});
+      await User.findOneAndUpdate(
+        {telegramId: ctx.from!.id},
+        {
+          $pull: {
+            groups: {
+              groupId: groupId,
+            },
+          },
+        },
+        {new: true}
+      );
       await ctx.reply(`Группа "${groupToDelete.name}" успешно удалена`);
     } catch (error) {
       console.error('Ошибка при удалении группы:', error);
