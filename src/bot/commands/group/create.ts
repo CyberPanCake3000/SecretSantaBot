@@ -3,6 +3,7 @@ import {SantaContext} from '../../../types';
 import {Group} from '../../../db/models/group';
 import {generateUniqueGroupCode} from '../../../utils/groupCodeGenerator';
 import {validateAndFormatDate} from '../../../utils/validateAndFormatDate';
+import {User} from '../../../db/models/user';
 
 const isValidGroupName = (name: string): boolean => {
   const nameRegex = /^[а-яёА-ЯЁa-zA-Z0-9\s.,'-]+$/u;
@@ -18,8 +19,9 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
   'create',
   async ctx => {
     await ctx.reply(
-      'Давайте создадим Вашу группу! Для отмены создания группы введите команду /cancel. Для начала введите название группы:'
+      'Давайте создадим вашу группу!\n\n Для отмены создания группы введите команду /cancel.'
     );
+    await ctx.reply('Введите название группы:');
     return ctx.wizard.next();
   },
   async ctx => {
@@ -140,14 +142,30 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
         drawHistory: [],
       });
 
-      console.log(newGroup);
+      await User.findOneAndUpdate(
+        {telegramId: ctx.from!.id},
+        {
+          $push: {
+            groups: {
+              groupId: newGroup._id,
+              groupName: groupData.name,
+              role: 'admin',
+              participationStatus: 'confirmed',
+              giftStatus: 'not_bought',
+              notificationEnabled: true,
+            },
+          },
+        },
+        {new: true, upsert: true}
+      );
 
       await ctx.replyWithHTML(
         '🎅 Хо-хо-хо ваша группа успешно создана!\n\n' +
           `Название: ${groupData.name}\n` +
           `Дата мероприятия: ${groupData.eventDate!.toLocaleDateString()}\n` +
           `Стоимость подарка: ${groupData.minPrice} - ${groupData.maxPrice} руб.\n\n` +
-          `Уникальный код для приглашения участников:\n<code>${uniqueCode}</code>\n\n` +
+          'Теперь нужно добавить пользователей командой /addparticipants, чтобы незнакомцы не попали к вам. \n\n' +
+          `Уникальный код для приглашения участников:\n\n<code>${uniqueCode}</code>\n\n` +
           'Отправь этот код участникам, чтобы они могли присоединиться к группе.'
       );
       return ctx.scene.leave();
