@@ -127,6 +127,7 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
 
     try {
       await Group.deleteOne({_id: groupId});
+      // TODO: нужно еще запускать процесс по удалению этой группы из массивов всех участников??
       await User.findOneAndUpdate(
         {telegramId: ctx.from!.id},
         {
