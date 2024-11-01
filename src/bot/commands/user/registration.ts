@@ -23,7 +23,8 @@ export const registrationWizard = new Scenes.WizardScene<SantaContext>(
       return;
     }
 
-    const userName = ctx.message.text.trim();
+    const enteredName = ctx.message.text.trim();
+    const telegramUsername = ctx.from?.username;
     const userId = ctx.from?.id;
 
     if (!userId) {
@@ -40,12 +41,13 @@ export const registrationWizard = new Scenes.WizardScene<SantaContext>(
 
       const newUser = new User({
         telegramId: userId,
-        name: userName,
+        name: enteredName,
+        telegramUsername,
       });
 
       await newUser.save();
       await ctx.reply(
-        `Поздравляем, ${userName}! Вы успешно зарегистрированы в игре Secret Santa.`
+        `Поздравляем, ${enteredName}! Вы успешно зарегистрированы в игре Secret Santa.`
       );
       await ctx.reply(
         'Теперь вы можете установить свои пожелания с помощью команды /setwishes'

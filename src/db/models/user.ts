@@ -3,6 +3,7 @@ export interface IUser extends Document {
   _id: ObjectId;
   telegramId: number;
   name: string;
+  telegramUsername: string;
   groups: [
     {
       groupId: ObjectId;
@@ -61,6 +62,10 @@ const UserSchema: Schema = new Schema(
       unique: true,
     },
     name: {
+      type: String,
+      required: true,
+    },
+    telegramUsername: {
       type: String,
       required: true,
     },
