@@ -1,7 +1,49 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
 import {SantaContext} from '../../../types';
-import {Group} from '../../../db/models/group';
 import {User} from '../../../db/models/user';
+
+interface GroupInfoData {
+  name: string;
+  eventDate: Date;
+  eventInfo: string;
+  adminTelegramId: number;
+  giftPriceRange: {
+    min: number;
+    max: number;
+  };
+  drawStatus: string;
+}
+
+// TODO: избавиться от any!! и использовать GroupInfoData
+const formatGroupInfo = async (group: any) => {
+  const admin = await User.findOne(
+    {telegramId: group.adminTelegramId},
+    {telegramUsername: 1}
+  );
+
+  const drawStatusMap: {[key: string]: string} = {
+    pending: 'Ожидает начала',
+    'in-progress': 'В процессе',
+    completed: '✅ Завершена',
+    failed: '❌ Не удалась',
+  };
+
+  const formattedDate = new Date(group.eventDate).toLocaleDateString();
+  const formattedName = group.name;
+  const formattedInfo = group.eventInfo || 'не указано';
+  const formattedUsername = admin?.telegramUsername || 'неизвестен';
+  const formattedStatus = drawStatusMap[group.drawStatus] || group.drawStatus;
+  const minPrice = group.giftPriceRange.min.toString();
+  const maxPrice = group.giftPriceRange.max.toString();
+
+  return `
+📅 Дата мероприятия: ${formattedDate}
+📝 Название: ${formattedName}
+👑 Организатор: @${formattedUsername}
+ℹ️ Описание: ${formattedInfo}
+💰 Ценовой диапазон: ${minPrice}- ${maxPrice} руб.
+🎲 Статус жеребьевки: ${formattedStatus}`;
+};
 
 export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
   'groupinfo',
@@ -23,13 +65,16 @@ export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
           as: 'groupDetails',
         },
       },
-
       {$unwind: '$groupDetails'},
       {
         $project: {
           _id: '$groups.groupId',
           name: '$groupDetails.name',
           eventDate: '$groupDetails.eventDate',
+          eventInfo: '$groupDetails.eventInfo',
+          adminTelegramId: '$groupDetails.adminTelegramId',
+          giftPriceRange: '$groupDetails.giftPriceRange',
+          drawStatus: '$groupDetails.drawStatus',
         },
       },
     ]);
@@ -41,7 +86,12 @@ export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
       return ctx.scene.leave();
     }
 
-    //если группа одна, то сразу выводить информацию о ней
+    if (userWithGroups.length === 1) {
+      const groupInfo = await formatGroupInfo(userWithGroups[0]);
+      await ctx.reply(groupInfo);
+      return ctx.scene.leave();
+    }
+
     const keyboard = Markup.inlineKeyboard([
       ...userWithGroups.map(group => [
         Markup.button.callback(
@@ -65,14 +115,37 @@ export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
       return;
     }
 
-    await ctx.deleteMessage();
-
     const callbackData = ctx.callbackQuery.data;
 
     if (callbackData === 'close_info') {
-      await ctx.reply('Вы выбрали не просматривать информацию о группе');
+      await ctx.answerCbQuery();
+      await ctx.reply('Просмотр информации о группе завершен');
       return ctx.scene.leave();
     }
+
+    if (!callbackData.startsWith('group_info_')) {
+      return;
+    }
+
+    const groupId = callbackData.replace('group_info_', '');
+    const group = ctx.scene.session.userGroups.find(
+      (g: any) => g._id.toString() === groupId
+    );
+
+    if (!group) {
+      await ctx.answerCbQuery('Группа не найдена');
+      return;
+    }
+
+    await ctx.answerCbQuery();
+
+    if (ctx.callbackQuery.message) {
+      await ctx.deleteMessage(ctx.callbackQuery.message.message_id);
+    }
+
+    const groupInfo = await formatGroupInfo(group);
+    await ctx.reply(groupInfo);
+    return ctx.scene.leave();
   }
 );
 
