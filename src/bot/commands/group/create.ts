@@ -123,6 +123,7 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
         eventDate: groupData.eventDate,
         eventInfo,
         adminTelegramId: ctx.from!.id,
+        adminUsername: ctx.from?.username,
         giftPriceRange: {
           min: groupData.minPrice,
           max: groupData.maxPrice,

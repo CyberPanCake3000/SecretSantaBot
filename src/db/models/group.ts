@@ -9,6 +9,7 @@ export interface IGroup extends Document {
   eventDate: Date;
   eventInfo: string;
   adminTelegramId: Number;
+  adminUsername: string;
   giftPriceRange: {
     min: number;
     max: number;
@@ -77,6 +78,10 @@ export const GroupSchema: Schema = new Schema(
     },
     adminTelegramId: {
       type: Number,
+      required: true,
+    },
+    adminUsername: {
+      type: String,
       required: true,
     },
     giftPriceRange: {
