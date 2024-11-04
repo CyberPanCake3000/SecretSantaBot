@@ -80,7 +80,7 @@ export const editGroupWizard = new Scenes.WizardScene<SantaContext>(
       return ctx.scene.leave();
     }
 
-    ctx.scene.session.groupToDelete = groupId;
+    ctx.scene.session.selectedGroupId = groupId;
 
     // СДЕЛАТЬ КЛАВИАТУРУ С КНОПКАМИ ПОЛЕ КОТОРЫЕ МОЖНО РЕДАКТИРОВАТЬ (ИМЯ, ДАТА, ИНФО)
     const confirmKeyboard = Markup.inlineKeyboard([

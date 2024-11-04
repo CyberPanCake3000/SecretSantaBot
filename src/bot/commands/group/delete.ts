@@ -69,31 +69,30 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
     }
 
     const groupId = callbackData.replace('delete_group_', '');
-    const groupToDelete = await Group.findOne({_id: groupId});
+    const selectedGroupId = await Group.findOne({_id: groupId});
 
-    if (!groupToDelete) {
+    if (!selectedGroupId) {
       await ctx.reply('Группа не найдена или у вас нет прав на её удаление');
       return ctx.scene.leave();
     }
 
-    ctx.scene.session.groupToDelete = groupId;
+    ctx.scene.session.selectedGroupId = groupId;
 
     const confirmKeyboard = Markup.inlineKeyboard([
       Markup.button.callback('Да, удалить', `confirm_delete_${groupId}`),
       Markup.button.callback('Отмена', 'cancel_delete'),
     ]);
 
-    const formattedDate = new Date(groupToDelete.eventDate).toLocaleDateString(
-      'ru-RU',
-      {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }
-    );
+    const formattedDate = new Date(
+      selectedGroupId.eventDate
+    ).toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
 
     await ctx.reply(
-      `Вы уверены, что хотите удалить группу "${groupToDelete.name}, ${formattedDate}"?`,
+      `Вы уверены, что хотите удалить группу "${selectedGroupId.name}, ${formattedDate}"?`,
       confirmKeyboard
     );
 
@@ -118,9 +117,9 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
     }
 
     const groupId = callbackData.replace('confirm_delete_', '');
-    const groupToDelete = await Group.findOne({_id: groupId});
+    const selectedGroupId = await Group.findOne({_id: groupId});
 
-    if (!groupToDelete) {
+    if (!selectedGroupId) {
       await ctx.reply('Группа не найдена или у вас нет прав на её удаление');
       return ctx.scene.leave();
     }
@@ -139,7 +138,7 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
         },
         {new: true}
       );
-      await ctx.reply(`Группа "${groupToDelete.name}" успешно удалена`);
+      await ctx.reply(`Группа "${selectedGroupId.name}" успешно удалена`);
     } catch (error) {
       console.error('Ошибка при удалении группы:', error);
       await ctx.reply(

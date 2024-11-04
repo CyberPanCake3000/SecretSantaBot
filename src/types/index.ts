@@ -11,7 +11,7 @@ export interface SantaWizardSession extends Scenes.WizardSessionData {
   registrationRequired?: boolean;
   groupData: GroupWizardData;
   userGroups: string[];
-  groupToDelete: string;
+  selectedGroupId: string;
 }
 
 export interface SantaContext extends Context {

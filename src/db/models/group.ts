@@ -16,7 +16,7 @@ export interface IGroup extends Document {
   };
   allowedUsers: [
     {
-      username: string;
+      userTelegramId: number;
       status: string;
       invitedAt: Date;
     },
