@@ -22,9 +22,21 @@ export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
     }
 
     if (userGroups.length === 1) {
-      ctx.scene.session.selectedGroupId = userGroups[0]._id.toString();
+      const group = userGroups[0];
+      const formattedDate = new Date(group.eventDate).toLocaleDateString(
+        'ru-RU',
+        {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }
+      );
+
+      ctx.scene.session.selectedGroupId = group._id.toString();
+      ctx.scene.session.selectedGroupFullName = `${group.name}, ${formattedDate}`;
+
       await ctx.reply(
-        'Отправьте мне контакт нового участника. \n\nДля завершения введите /cancel'
+        `Вы добавляете участников в группу "${ctx.scene.session.selectedGroupFullName}"\n\nОтправьте мне контакт нового участника\n\nДля завершения введите /cancel`
       );
       return ctx.wizard.next();
     }
@@ -58,107 +70,112 @@ export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
     ctx.scene.session.userGroups = userGroups.map(group =>
       group._id.toString()
     );
-    console.log('1 step is here');
     return ctx.wizard.next();
   },
   async ctx => {
-    if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
-      return;
-    }
+    if (ctx.callbackQuery && 'data' in ctx.callbackQuery) {
+      const callbackData = ctx.callbackQuery.data;
 
-    await ctx.deleteMessage();
-
-    const callbackData = ctx.callbackQuery.data;
-
-    if (callbackData === 'close_add') {
-      await ctx.answerCbQuery();
-      await ctx.reply('Добавление участников в группу отменено');
-      return ctx.scene.leave();
-    }
-
-    if (callbackData?.startsWith('add_participants_')) {
-      const groupId = callbackData.replace('add_participants_', '');
-
-      if (!ctx.scene.session.userGroups?.includes(groupId)) {
-        await ctx.answerCbQuery('Группа не найдена');
+      if (callbackData === 'cancel_add') {
+        await ctx.answerCbQuery();
+        await ctx.reply('Добавление участников в группу отменено');
         return ctx.scene.leave();
       }
 
-      ctx.scene.session.selectedGroupId = groupId;
-      await ctx.answerCbQuery();
-      await ctx.reply(
-        'Отправьте мне контакт нового участника\n\nДля завершения введите /cancel'
-      );
-
-      if ('message' in ctx.update) {
-        const message = ctx.update.message;
-
-        if ('text' in message && message.text === '/cancel') {
-          await ctx.reply('Операция завершена');
+      if (callbackData?.startsWith('add_participants_')) {
+        const groupId = callbackData.replace('add_participants_', '');
+        if (!ctx.scene.session.userGroups?.includes(groupId)) {
+          await ctx.answerCbQuery('Группа не найдена');
           return ctx.scene.leave();
         }
 
-        let userId: number | undefined;
-
-        if ('contact' in message && message.contact) {
-          userId = message.contact.user_id;
+        const group = await Group.findById(groupId);
+        if (!group) {
+          await ctx.answerCbQuery('Группа не найдена');
+          return ctx.scene.leave();
         }
 
-        if (!userId) {
-          await ctx.reply(
-            'Пожалуйста, отправьте корректный контакт пользователя'
-          );
+        const formattedDate = new Date(group.eventDate).toLocaleDateString(
+          'ru-RU',
+          {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }
+        );
+
+        ctx.scene.session.selectedGroupId = groupId;
+        ctx.scene.session.selectedGroupFullName = `${group.name}, ${formattedDate}`;
+
+        await ctx.answerCbQuery();
+        await ctx.deleteMessage();
+        await ctx.reply(
+          `Вы добавляете участников в группу "${ctx.scene.session.selectedGroupFullName}"\n\nОтправьте мне контакт нового участника\n\nДля завершения введите /cancel`
+        );
+        return;
+      }
+    }
+
+    if (ctx.message) {
+      if ('text' in ctx.message && ctx.message.text === '/cancel') {
+        await ctx.reply('Операция завершена');
+        return ctx.scene.leave();
+      }
+
+      let userId: number | undefined;
+
+      if ('contact' in ctx.message && ctx.message.contact) {
+        userId = ctx.message.contact.user_id;
+      }
+
+      if (!userId) {
+        await ctx.reply(
+          'Пожалуйста, отправьте корректный контакт пользователя или введите команду /cancel'
+        );
+        return;
+      }
+
+      try {
+        const groupId = ctx.scene.session.selectedGroupId;
+        const group = await Group.findById(groupId);
+
+        if (!group) {
+          await ctx.reply('Группа не найдена');
+          return ctx.scene.leave();
+        }
+
+        const existingUser = group.allowedUsers.find(
+          user => user.userTelegramId === userId
+        );
+
+        if (existingUser) {
+          await ctx.reply('Пользователь уже добавлен в группу');
           return;
         }
 
-        try {
-          console.log('we are adding new people here');
-          const groupId = ctx.scene.session.selectedGroupId;
-          const group = await Group.findById(groupId);
+        group.allowedUsers.push({
+          userTelegramId: userId,
+          status: 'pending',
+          invitedAt: new Date(),
+        });
 
-          if (!group) {
-            await ctx.reply('Группа не найдена');
-            return ctx.scene.leave();
-          }
-
-          console.log('1');
-
-          const existingUser = group.allowedUsers.find(
-            user => user.userTelegramId === userId
-          );
-
-          console.log('2');
-
-          if (existingUser) {
-            await ctx.reply('Пользователь уже добавлен в группу');
-            return;
-          }
-
-          console.log('3');
-
-          group.allowedUsers.push({
-            userTelegramId: userId,
-            status: 'pending',
-            invitedAt: new Date(),
-          });
-
-          console.log('4');
-
-          await group.save();
-          await ctx.reply(
-            'Пользователь успешно добавлен в группу\n\nМожете отправить следующего участника или /cancel для завершения'
-          );
-        } catch (error) {
-          console.error('Error adding participant:', error);
-          await ctx.reply('Произошла ошибка при добавлении участника');
-          return ctx.scene.leave();
-        }
+        await group.save();
+        await ctx.reply(
+          `Пользователь успешно добавлен в группу "${ctx.scene.session.selectedGroupFullName}"\n\nМожете отправить следующего участника или /cancel для завершения`
+        );
+      } catch (error) {
+        console.error('Error adding participant:', error);
+        await ctx.reply('Произошла ошибка при добавлении участника');
+        return ctx.scene.leave();
       }
-
-      return ctx.scene.leave();
     }
   }
 );
+
+addParticipantsWizard.command('cancel', async ctx => {
+  await ctx.reply('Операция завершена');
+  return ctx.scene.leave();
+});
 
 const stage = new Scenes.Stage<SantaContext>([addParticipantsWizard]);
 

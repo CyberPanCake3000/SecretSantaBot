@@ -12,6 +12,7 @@ export interface SantaWizardSession extends Scenes.WizardSessionData {
   groupData: GroupWizardData;
   userGroups: string[];
   selectedGroupId: string;
+  selectedGroupFullName: string;
 }
 
 export interface SantaContext extends Context {
