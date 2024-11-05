@@ -22,7 +22,7 @@ export const validateAndFormatDate = (
   const monthNum = parseInt(month, 10) - 1;
   const yearNum = parseInt(year, 10);
 
-  const inputDate = new Date(yearNum, monthNum, dayNum);
+  const inputDate = new Date(yearNum, monthNum, dayNum, 12, 0, 0, 0);
 
   if (
     inputDate.getDate() !== dayNum ||
@@ -45,10 +45,8 @@ export const validateAndFormatDate = (
     };
   }
 
-  inputDate.setUTCHours(0, 0, 0, 0);
-
   return {
     isValid: true,
-    mongoDate: inputDate,
+    mongoDate: new Date(Date.UTC(yearNum, monthNum, dayNum, 12, 0, 0, 0)),
   };
 };
