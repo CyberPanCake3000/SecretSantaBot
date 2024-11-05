@@ -17,7 +17,7 @@ export interface IGroup extends Document {
   allowedUsers: [
     {
       userTelegramId: number;
-      status: string;
+      status: string; //pending / confirmed
       invitedAt: Date;
     },
   ];
@@ -96,9 +96,9 @@ export const GroupSchema: Schema = new Schema(
     },
     allowedUsers: [
       {
-        username: {
-          type: String,
-          required: true,
+        userTelegramId: {
+          type: Number,
+          rquired: true,
         },
         status: {
           type: String,

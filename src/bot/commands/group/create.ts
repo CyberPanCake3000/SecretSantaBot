@@ -138,7 +138,13 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
             joinedAt: new Date(),
           },
         ],
-        allowedUsers: [],
+        allowedUsers: [
+          {
+            userTelegramId: ctx.from!.id,
+            status: 'confirmed',
+            invitedAt: new Date(),
+          },
+        ],
         santaPairs: [],
         drawHistory: [],
       });
