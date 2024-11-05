@@ -1,6 +1,7 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
 import {Group} from '../../../db/models/group';
 import {SantaContext} from '../../../types';
+import {formatDateToOutput} from '../../../utils/formatDateToOutput';
 
 export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
   'addparticipants',
@@ -23,14 +24,7 @@ export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
 
     if (userGroups.length === 1) {
       const group = userGroups[0];
-      const formattedDate = new Date(group.eventDate).toLocaleDateString(
-        'ru-RU',
-        {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        }
-      );
+      const formattedDate = new Date(group.eventDate);
 
       ctx.scene.session.selectedGroupId = group._id.toString();
       ctx.scene.session.selectedGroupFullName = `${group.name}, ${formattedDate}`;
@@ -43,14 +37,7 @@ export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
 
     const keyboard = Markup.inlineKeyboard([
       ...userGroups.map(group => {
-        const formattedDate = new Date(group.eventDate).toLocaleDateString(
-          'ru-RU',
-          {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          }
-        );
+        const formattedDate = formatDateToOutput(group.eventDate);
 
         return [
           Markup.button.callback(
@@ -95,14 +82,7 @@ export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
           return ctx.scene.leave();
         }
 
-        const formattedDate = new Date(group.eventDate).toLocaleDateString(
-          'ru-RU',
-          {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          }
-        );
+        const formattedDate = formatDateToOutput(group.eventDate);
 
         ctx.scene.session.selectedGroupId = groupId;
         ctx.scene.session.selectedGroupFullName = `${group.name}, ${formattedDate}`;

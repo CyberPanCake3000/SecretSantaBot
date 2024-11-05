@@ -2,6 +2,7 @@ import {Scenes, Markup, Telegraf} from 'telegraf';
 import {SantaContext} from '../../../types';
 import {Group} from '../../../db/models/group';
 import {User} from '../../../db/models/user';
+import {formatDateToOutput} from '../../../utils/formatDateToOutput';
 
 export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
   'delete',
@@ -24,14 +25,7 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
 
     const keyboard = Markup.inlineKeyboard([
       ...userGroups.map(group => {
-        const formattedDate = new Date(group.eventDate).toLocaleDateString(
-          'ru-RU',
-          {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          }
-        );
+        const formattedDate = formatDateToOutput(group.eventDate);
 
         return [
           Markup.button.callback(
@@ -83,13 +77,7 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
       Markup.button.callback('Отмена', 'cancel_delete'),
     ]);
 
-    const formattedDate = new Date(
-      selectedGroupId.eventDate
-    ).toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    const formattedDate = formatDateToOutput(selectedGroupId.eventDate);
 
     await ctx.reply(
       `Вы уверены, что хотите удалить группу "${selectedGroupId.name}, ${formattedDate}"?`,

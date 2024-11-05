@@ -1,6 +1,7 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
 import {SantaContext} from '../../../types';
 import {User} from '../../../db/models/user';
+import {formatDateToOutput} from '../../../utils/formatDateToOutput';
 
 interface GroupInfoData {
   name: string;
@@ -28,7 +29,7 @@ const formatGroupInfo = async (group: any) => {
     failed: '❌ Не удалась',
   };
 
-  const formattedDate = new Date(group.eventDate).toLocaleDateString();
+  const formattedDate = formatDateToOutput(group.eventDate);
   const formattedName = group.name;
   const formattedInfo = group.eventInfo || 'не указано';
   const formattedUsername = admin?.telegramUsername || 'неизвестен';
@@ -95,7 +96,7 @@ export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
     const keyboard = Markup.inlineKeyboard([
       ...userWithGroups.map(group => [
         Markup.button.callback(
-          `${group.name}, ${new Date(group.eventDate).toLocaleDateString()}`,
+          `${group.name}, ${formatDateToOutput(group.eventDate)}`,
           `group_info_${group._id}`
         ),
       ]),
@@ -114,6 +115,8 @@ export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
     if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
       return;
     }
+
+    await ctx.deleteMessage();
 
     const callbackData = ctx.callbackQuery.data;
 
@@ -138,10 +141,6 @@ export const groupInfoWizard = new Scenes.WizardScene<SantaContext>(
     }
 
     await ctx.answerCbQuery();
-
-    if (ctx.callbackQuery.message) {
-      await ctx.deleteMessage(ctx.callbackQuery.message.message_id);
-    }
 
     const groupInfo = await formatGroupInfo(group);
     await ctx.reply(groupInfo);
