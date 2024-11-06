@@ -14,7 +14,7 @@ export interface IUser extends Document {
       notificationEnabled: Boolean;
     },
   ];
-  preferences: string;
+  giftPreferences: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,7 +73,7 @@ const UserSchema: Schema = new Schema(
       type: [UserGroupSchema],
       default: [],
     },
-    preferences: {
+    giftPreferences: {
       type: String,
       default: '',
       required: true,

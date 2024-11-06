@@ -41,7 +41,7 @@ export const setWishesWizard = new Scenes.WizardScene<SantaContext>(
     try {
       const user = await User.findOneAndUpdate(
         {telegramId: userId},
-        {preferences: preferences},
+        {giftPreferences: preferences},
         {new: true}
       );
 

@@ -41,20 +41,6 @@ export interface IGroup extends Document {
       manuallyAssigned: boolean;
     },
   ];
-  drawHistory: [
-    {
-      date: Date;
-      type: string;
-      pairs: [
-        {
-          santaTelegramId: number;
-          santaUsername: string;
-          recipientTelegramId: number;
-          recipientUsername: string;
-        },
-      ];
-    },
-  ];
 }
 
 export const GroupSchema: Schema = new Schema(
@@ -164,38 +150,6 @@ export const GroupSchema: Schema = new Schema(
           type: Boolean,
           default: false,
         },
-      },
-    ],
-    drawHistory: [
-      {
-        date: {
-          type: Date,
-          default: Date.now,
-        },
-        type: {
-          type: String,
-          required: true,
-        },
-        pairs: [
-          {
-            santaTelegramId: {
-              type: Number,
-              required: true,
-            },
-            santaUsername: {
-              type: String,
-              required: true,
-            },
-            recipientTelegramId: {
-              type: Number,
-              required: true,
-            },
-            recipientUsername: {
-              type: String,
-              required: true,
-            },
-          },
-        ],
       },
     ],
   },
