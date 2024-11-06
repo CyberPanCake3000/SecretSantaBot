@@ -19,7 +19,7 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
   'create',
   async ctx => {
     await ctx.reply(
-      'Давайте создадим вашу группу!\n\n Для отмены создания группы введите команду /cancel.'
+      'Давайте создадим вашу группу!\n\n Для отмены введите команду /cancel.'
     );
     await ctx.reply('Введите название группы:');
     return ctx.wizard.next();
