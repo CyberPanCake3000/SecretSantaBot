@@ -76,7 +76,6 @@ const UserSchema: Schema = new Schema(
     giftPreferences: {
       type: String,
       default: '',
-      required: true,
     },
   },
   {
