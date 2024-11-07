@@ -8,6 +8,7 @@ import {deleteGroupCommand} from './commands/group/delete';
 import {groupInfoCommand} from './commands/group/groupinfo';
 import {inviteCommand} from './commands/admin/invite';
 import {joinCommand} from './commands/user/join';
+import {kickCommand} from './commands/admin/kick';
 
 const bot = new Telegraf<SantaContext>(config.telegramBotToken);
 
@@ -33,5 +34,6 @@ deleteGroupCommand(bot);
 groupInfoCommand(bot);
 inviteCommand(bot);
 joinCommand(bot);
+kickCommand(bot);
 
 export {bot};

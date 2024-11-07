@@ -14,33 +14,27 @@ export interface IGroup extends Document {
     min: number;
     max: number;
   };
-  allowedUsers: [
-    {
-      userTelegramId: number;
-      status: string; //pending / confirmed
-      invitedAt: Date;
-    },
-  ];
+  allowedUsers: {
+    userTelegramId: number;
+    status: string; //pending / confirmed
+    invitedAt: Date;
+  }[];
   status: string;
   drawStatus: string;
-  participants: [
-    {
-      userTelegramId: number;
-      username: string;
-      joinedAt: Date;
-      participationStatus: string; // pending/checked-in/canceled
-    },
-  ];
-  santaPairs: [
-    {
-      santaTelegramId: number;
-      recipientTelegramId: number;
-      santaUsername: string;
-      recipientUsername: string;
-      giftStatus: string;
-      manuallyAssigned: boolean;
-    },
-  ];
+  participants: {
+    userTelegramId: number;
+    username: string;
+    joinedAt: Date;
+    participationStatus: string; // pending/checked-in/canceled
+  }[];
+  santaPairs: {
+    santaTelegramId: number;
+    recipientTelegramId: number;
+    santaUsername: string;
+    recipientUsername: string;
+    giftStatus: string;
+    manuallyAssigned: boolean;
+  }[];
 }
 
 export const GroupSchema: Schema = new Schema(

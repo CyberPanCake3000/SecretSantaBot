@@ -1,10 +1,11 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
-import {Group} from '../../../db/models/group';
 import {SantaContext} from '../../../types';
+import {Group} from '../../../db/models/group';
+import {User} from '../../../db/models/user';
 import {formatDateToOutput} from '../../../utils/formatDateToOutput';
 
-export const inviteWizard = new Scenes.WizardScene<SantaContext>(
-  'invite',
+export const kickWizard = new Scenes.WizardScene<SantaContext>(
+  'kick',
   async ctx => {
     const userId = ctx.from?.id;
     if (!userId) {
@@ -13,24 +14,27 @@ export const inviteWizard = new Scenes.WizardScene<SantaContext>(
     }
 
     const userGroups = await Group.find(
-      {adminTelegramId: userId},
+      {
+        adminTelegramId: userId,
+        drawStatus: {$ne: 'completed'},
+      },
       {_id: 1, name: 1, eventDate: 1}
     );
 
     if (userGroups.length === 0) {
-      await ctx.reply('У вас нет активных групп для редактирования');
+      await ctx.reply('У вас нет активных групп для удаления участников');
       return ctx.scene.leave();
     }
 
     if (userGroups.length === 1) {
       const group = userGroups[0];
-      const formattedDate = new Date(group.eventDate);
+      const formattedDate = formatDateToOutput(group.eventDate);
 
       ctx.scene.session.selectedGroupId = group._id.toString();
       ctx.scene.session.selectedGroupFullName = `${group.name}, ${formattedDate}`;
 
       await ctx.reply(
-        `Вы добавляете участников в группу "${ctx.scene.session.selectedGroupFullName}"\n\nОтправьте мне контакт нового участника\n\nДля завершения введите /cancel`
+        `Выбрана группа "${ctx.scene.session.selectedGroupFullName}"\n\nОтправьте контакт участника, которого хотите удалить из группы\n\nДля завершения введите /cancel`
       );
       return ctx.wizard.next();
     }
@@ -38,19 +42,18 @@ export const inviteWizard = new Scenes.WizardScene<SantaContext>(
     const keyboard = Markup.inlineKeyboard([
       ...userGroups.map(group => {
         const formattedDate = formatDateToOutput(group.eventDate);
-
         return [
           Markup.button.callback(
             `${group.name}, ${formattedDate}`,
-            `invite_${group._id}`
+            `kick_${group._id}`
           ),
         ];
       }),
-      [Markup.button.callback('Отмена', 'cancel_invite')],
+      [Markup.button.callback('Отмена', 'cancel_kick')],
     ]);
 
     await ctx.reply(
-      'Выберите группу, в которую желаете добавить участников:',
+      'Выберите группу, из которой хотите удалить участника:',
       keyboard
     );
 
@@ -63,14 +66,14 @@ export const inviteWizard = new Scenes.WizardScene<SantaContext>(
     if (ctx.callbackQuery && 'data' in ctx.callbackQuery) {
       const callbackData = ctx.callbackQuery.data;
 
-      if (callbackData === 'cancel_invite') {
+      if (callbackData === 'cancel_kick') {
         await ctx.answerCbQuery();
-        await ctx.reply('Добавление участников в группу отменено');
+        await ctx.reply('Удаление участников из группы прекращено');
         return ctx.scene.leave();
       }
 
-      if (callbackData?.startsWith('invite_')) {
-        const groupId = callbackData.replace('invite_', '');
+      if (callbackData?.startsWith('kick_')) {
+        const groupId = callbackData.replace('kick_', '');
         if (!ctx.scene.session.userGroups?.includes(groupId)) {
           await ctx.answerCbQuery('Группа не найдена');
           return ctx.scene.leave();
@@ -82,6 +85,11 @@ export const inviteWizard = new Scenes.WizardScene<SantaContext>(
           return ctx.scene.leave();
         }
 
+        if (group.drawStatus === 'completed') {
+          await ctx.answerCbQuery('Нельзя удалять участников после жеребьевки');
+          return ctx.scene.leave();
+        }
+
         const formattedDate = formatDateToOutput(group.eventDate);
 
         ctx.scene.session.selectedGroupId = groupId;
@@ -90,7 +98,7 @@ export const inviteWizard = new Scenes.WizardScene<SantaContext>(
         await ctx.answerCbQuery();
         await ctx.deleteMessage();
         await ctx.reply(
-          `Вы добавляете участников в группу "${ctx.scene.session.selectedGroupFullName}"\n\nОтправьте мне контакт нового участника\n\nДля завершения введите /cancel`
+          `Выбрана группа "${ctx.scene.session.selectedGroupFullName}"\n\nОтправьте контакт участника, которого хотите удалить из группы\n\nДля завершения введите /cancel`
         );
         return;
       }
@@ -124,42 +132,45 @@ export const inviteWizard = new Scenes.WizardScene<SantaContext>(
           return ctx.scene.leave();
         }
 
-        const existingUser = group.allowedUsers.find(
+        const existingAllowedUser = group.allowedUsers.find(
           user => user.userTelegramId === userId
         );
 
-        if (existingUser) {
-          await ctx.reply('Пользователь уже добавлен в группу');
+        if (!existingAllowedUser) {
+          await ctx.reply('Пользователь не найден в группе');
           return;
         }
 
-        group.allowedUsers.push({
-          userTelegramId: userId,
-          status: 'pending',
-          invitedAt: new Date(),
-        });
+        group.allowedUsers = group.allowedUsers.filter(
+          user => user.userTelegramId !== userId
+        );
+
+        group.participants = group.participants.filter(
+          participant => participant.userTelegramId !== userId
+        );
 
         await group.save();
+
+        await User.updateOne(
+          {telegramId: userId},
+          {$pull: {groups: {groupId: group._id}}}
+        );
+
         await ctx.reply(
-          `Пользователь успешно добавлен в группу "${ctx.scene.session.selectedGroupFullName}"\n\nМожете отправить следующего участника или /cancel для завершения`
+          `Пользователь успешно удален из группы "${ctx.scene.session.selectedGroupFullName}"\n\nМожете отправить следующий контакт или /cancel для завершения`
         );
       } catch (error) {
-        console.error('Error adding participant:', error);
-        await ctx.reply('Произошла ошибка при добавлении участника');
+        console.error('Error removing participant:', error);
+        await ctx.reply('Произошла ошибка при удалении участника');
         return ctx.scene.leave();
       }
     }
   }
 );
 
-inviteWizard.command('cancel', async ctx => {
-  await ctx.reply('Операция завершена');
-  return ctx.scene.leave();
-});
+const stage = new Scenes.Stage<SantaContext>([kickWizard]);
 
-const stage = new Scenes.Stage<SantaContext>([inviteWizard]);
-
-export const inviteCommand = (bot: Telegraf<SantaContext>) => {
+export const kickCommand = (bot: Telegraf<SantaContext>) => {
   bot.use(stage.middleware());
-  bot.command('invite', ctx => ctx.scene.enter('invite'));
+  bot.command('kick', ctx => ctx.scene.enter('kick'));
 };
