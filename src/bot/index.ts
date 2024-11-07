@@ -6,7 +6,7 @@ import {setWishesCommand} from './commands/user/setWishes';
 import {createGroupCommand} from './commands/group/create';
 import {deleteGroupCommand} from './commands/group/delete';
 import {groupInfoCommand} from './commands/group/groupinfo';
-import {addParticipantsCommand} from './commands/admin/addparticipants';
+import {inviteCommand} from './commands/admin/invite';
 import {joinCommand} from './commands/user/join';
 
 const bot = new Telegraf<SantaContext>(config.telegramBotToken);
@@ -31,7 +31,7 @@ setWishesCommand(bot);
 createGroupCommand(bot);
 deleteGroupCommand(bot);
 groupInfoCommand(bot);
-addParticipantsCommand(bot);
+inviteCommand(bot);
 joinCommand(bot);
 
 export {bot};

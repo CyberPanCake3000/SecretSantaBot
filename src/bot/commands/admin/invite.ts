@@ -3,8 +3,8 @@ import {Group} from '../../../db/models/group';
 import {SantaContext} from '../../../types';
 import {formatDateToOutput} from '../../../utils/formatDateToOutput';
 
-export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
-  'addparticipants',
+export const inviteWizard = new Scenes.WizardScene<SantaContext>(
+  'invite',
   async ctx => {
     const userId = ctx.from?.id;
     if (!userId) {
@@ -152,14 +152,14 @@ export const addParticipantsWizard = new Scenes.WizardScene<SantaContext>(
   }
 );
 
-addParticipantsWizard.command('cancel', async ctx => {
+inviteWizard.command('cancel', async ctx => {
   await ctx.reply('Операция завершена');
   return ctx.scene.leave();
 });
 
-const stage = new Scenes.Stage<SantaContext>([addParticipantsWizard]);
+const stage = new Scenes.Stage<SantaContext>([inviteWizard]);
 
-export const addParticipantsCommand = (bot: Telegraf<SantaContext>) => {
+export const inviteCommand = (bot: Telegraf<SantaContext>) => {
   bot.use(stage.middleware());
-  bot.command('addparticipants', ctx => ctx.scene.enter('addparticipants'));
+  bot.command('invite', ctx => ctx.scene.enter('invite'));
 };
