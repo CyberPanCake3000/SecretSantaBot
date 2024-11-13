@@ -7,7 +7,6 @@ export interface IUser extends Document {
   groups: [
     {
       groupId: ObjectId;
-      groupName: String;
       role: String;
       participationStatus: String;
       giftStatus: String;
@@ -24,11 +23,6 @@ const UserGroupSchema = new Schema({
     type: Schema.Types.ObjectId,
     required: true,
     ref: 'Group',
-  },
-  groupName: {
-    type: String,
-    required: true,
-    default: '',
   },
   role: {
     type: String,

@@ -2,8 +2,8 @@ import mongoose, {Document, ObjectId, Schema} from 'mongoose';
 
 export interface IGroup extends Document {
   _id: ObjectId;
-  name: string;
-  uniqueCode: string;
+  telegramGroupName: string;
+  telegramGroupId: number;
   createdAt: Date;
   updatedAt: Date;
   eventDate: Date;
@@ -14,11 +14,6 @@ export interface IGroup extends Document {
     min: number;
     max: number;
   };
-  allowedUsers: {
-    userTelegramId: number;
-    status: string; //pending / confirmed
-    invitedAt: Date;
-  }[];
   status: string;
   drawStatus: string;
   participants: {
@@ -43,11 +38,6 @@ export const GroupSchema: Schema = new Schema(
       type: String,
       required: true,
     },
-    uniqueCode: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     eventDate: {
       type: Date,
       required: true,
@@ -62,7 +52,6 @@ export const GroupSchema: Schema = new Schema(
     },
     adminUsername: {
       type: String,
-      required: true,
     },
     giftPriceRange: {
       min: {
@@ -74,22 +63,6 @@ export const GroupSchema: Schema = new Schema(
         required: true,
       },
     },
-    allowedUsers: [
-      {
-        userTelegramId: {
-          type: Number,
-          rquired: true,
-        },
-        status: {
-          type: String,
-          required: true,
-        },
-        invitedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
     status: {
       type: String,
       required: true,
@@ -115,6 +88,9 @@ export const GroupSchema: Schema = new Schema(
         participationStatus: {
           type: String,
           required: true,
+        },
+        wishes: {
+          type: String,
         },
       },
     ],
@@ -152,7 +128,6 @@ export const GroupSchema: Schema = new Schema(
   }
 );
 
-GroupSchema.index({uniqueCode: 1}, {unique: true});
 GroupSchema.index({adminTelegramId: 1});
 GroupSchema.index({'participants.userTelegramId': 1});
 

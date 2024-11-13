@@ -1,7 +1,6 @@
 import {Context, Scenes} from 'telegraf';
 
 interface GroupWizardData {
-  name?: string;
   minPrice?: number;
   maxPrice?: number;
   eventDate?: Date;
@@ -12,7 +11,6 @@ export interface SantaWizardSession extends Scenes.WizardSessionData {
   groupData: GroupWizardData;
   userGroups: string[];
   selectedGroupId: string;
-  selectedGroupFullName: string;
 }
 
 export interface SantaContext extends Context {
