@@ -1,4 +1,5 @@
 import {Context, Scenes} from 'telegraf';
+import {IGroup} from '../db/models/group';
 
 interface GroupWizardData {
   minPrice?: number;
@@ -7,10 +8,10 @@ interface GroupWizardData {
   eventInfo?: string;
 }
 export interface SantaWizardSession extends Scenes.WizardSessionData {
-  registrationRequired?: boolean;
   groupData: GroupWizardData;
   userGroups: string[];
   selectedGroupId: string;
+  currentGroup: IGroup;
 }
 
 export interface SantaContext extends Context {
