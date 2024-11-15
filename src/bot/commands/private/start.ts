@@ -37,10 +37,10 @@ async function handlePrivateChat(ctx: SantaContext) {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
-  let user = await User.findOne({telegramId}).populate('groups.groupId');
+  const user = await User.findOne({telegramId});
 
   if (!user) {
-    user = await createNewUser(ctx);
+    await createNewUser(ctx);
     await sendNewUserMessage(ctx);
   } else {
     await sendExistingUserMessage(ctx);
@@ -53,7 +53,7 @@ async function handleGroupChat(ctx: SantaContext) {
 
   if (!chatId || !addedBy) return;
 
-  await createNewGroup(ctx);
+  await createNewOrGetGroup(ctx);
   await sendGroupWelcomeMessage(ctx);
 }
 
@@ -68,11 +68,12 @@ async function createNewUser(ctx: SantaContext): Promise<IUser> {
   return user;
 }
 
-async function createNewGroup(ctx: SantaContext) {
-  const existingGroup = await Group.find({telegramGroupId: ctx.chat?.id});
+async function createNewOrGetGroup(ctx: SantaContext) {
+  const existingGroup = await Group.findOne({telegramGroupId: ctx.chat?.id});
 
-  if (!existingGroup) {
-    const group = new Group({
+  const group =
+    existingGroup ||
+    (await new Group({
       telegramGroupName: ctx.getChat.name || '',
       telegramGroupId: ctx.chat?.id,
       adminTelegramId: ctx.from?.id,
@@ -80,11 +81,9 @@ async function createNewGroup(ctx: SantaContext) {
       eventDate: new Date(),
       minPrice: 0,
       maxPrice: 0,
-    });
-    await group.save();
-    ctx.scene.session.currentGroup = group;
-  }
-  ctx.scene.session.currentGroup = existingGroup;
+    }).save());
+
+  ctx.scene.session.currentGroup = group;
 }
 
 async function sendNewUserMessage(ctx: SantaContext) {
@@ -92,7 +91,7 @@ async function sendNewUserMessage(ctx: SantaContext) {
     [
       Markup.button.url(
         'Добавить Тайного Санту в чат',
-        `https://t.me/${ctx.botInfo?.username}?startgroup=true&admin=can_post_messages`
+        `https://t.me/${ctx.botInfo?.username}?startgroup=true`
       ),
     ],
   ]);
@@ -132,7 +131,15 @@ async function sendGroupWelcomeMessage(ctx: SantaContext) {
     ? `@${admin.user.username}`
     : `[${admin.user.first_name}](tg://user?id=${admin.user.id})`;
 
-  await ctx.reply(GROUP_WELCOME + adminMention);
+  const keyboard = Markup.inlineKeyboard([
+    [
+      Markup.button.url(
+        'Зарегистрироваться',
+        `https://t.me/${ctx.botInfo?.username}?start=${ctx.chat?.id}`
+      ),
+    ],
+  ]);
+  await ctx.reply(GROUP_WELCOME + adminMention, keyboard);
 }
 
 const stage = new Scenes.Stage<SantaContext>([startWizard]);
