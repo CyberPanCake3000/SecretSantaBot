@@ -29,7 +29,7 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
 
         return [
           Markup.button.callback(
-            `${group.name}, ${formattedDate}`,
+            `${group}, ${formattedDate}`,
             `delete_group_${group._id}`
           ),
         ];
@@ -80,7 +80,7 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
     const formattedDate = formatDateToOutput(selectedGroupId.eventDate);
 
     await ctx.reply(
-      `Вы уверены, что хотите удалить группу "${selectedGroupId.name}, ${formattedDate}"?`,
+      `Вы уверены, что хотите удалить группу "${selectedGroupId}, ${formattedDate}"?`,
       confirmKeyboard
     );
 
@@ -126,7 +126,6 @@ export const deleteGroupWizard = new Scenes.WizardScene<SantaContext>(
         },
         {new: true}
       );
-      await ctx.reply(`Группа "${selectedGroupId.name}" успешно удалена`);
     } catch (error) {
       console.error('Ошибка при удалении группы:', error);
       await ctx.reply(

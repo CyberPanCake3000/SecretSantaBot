@@ -1,7 +1,6 @@
 import {Telegraf, Scenes} from 'telegraf';
 import {SantaContext} from '../../../types';
 import {Group} from '../../../db/models/group';
-import {generateUniqueGroupCode} from '../../../utils/groupCodeGenerator';
 import {validateAndFormatDate} from '../../../utils/validateAndFormatDate';
 import {User} from '../../../db/models/user';
 
@@ -21,25 +20,7 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
     await ctx.reply(
       'Давайте создадим вашу группу!\n\n Для отмены введите команду /cancel.'
     );
-    await ctx.reply('Введите название группы:');
-    return ctx.wizard.next();
-  },
-  async ctx => {
-    if (!ctx.message || !('text' in ctx.message)) {
-      await ctx.reply('Пожалуйста, введите название группы текстом');
-      return;
-    }
-
-    const name = ctx.message.text;
-    if (!isValidGroupName(name)) {
-      await ctx.reply('Некорректное название. Попробуйте еще раз');
-      return;
-    }
-
-    ctx.scene.session.groupData = {name};
-    await ctx.reply(
-      'Отлично! Теперь введите минимальную стоимость подарка (в рублях):'
-    );
+    await ctx.reply('Введите минимальную стоимость подарка (в рублях):');
     return ctx.wizard.next();
   },
   async ctx => {
@@ -115,10 +96,9 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
     const groupData = ctx.scene.session.groupData;
 
     try {
-      const uniqueCode = generateUniqueGroupCode();
+      const uniqueCode = '';
 
       const newGroup = await Group.create({
-        name: groupData.name,
         uniqueCode,
         eventDate: groupData.eventDate,
         eventInfo,
@@ -155,7 +135,6 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
           $push: {
             groups: {
               groupId: newGroup._id,
-              groupName: groupData.name,
               role: 'admin',
               participationStatus: 'confirmed',
               giftStatus: 'not_bought',
@@ -168,7 +147,6 @@ export const createGroupWizard = new Scenes.WizardScene<SantaContext>(
 
       await ctx.replyWithHTML(
         '🎅 Хо-хо-хо ваша группа успешно создана!\n\n' +
-          `Название: ${groupData.name}\n` +
           `Дата мероприятия: ${groupData.eventDate!.toLocaleDateString()}\n` +
           `Стоимость подарка: ${groupData.minPrice} - ${groupData.maxPrice} руб.\n\n` +
           'Теперь нужно добавить пользователей командой /addparticipants, чтобы незнакомцы не попали к вам. \n\n' +

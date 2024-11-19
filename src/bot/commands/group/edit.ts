@@ -28,7 +28,7 @@ export const editGroupWizard = new Scenes.WizardScene<SantaContext>(
 
         return [
           Markup.button.callback(
-            `${group.name}, ${formattedDate}`,
+            `${group.telegramGroupName}, ${formattedDate}`,
             `edit_group_${group._id}`
           ),
         ];
@@ -85,7 +85,7 @@ export const editGroupWizard = new Scenes.WizardScene<SantaContext>(
     const formattedDate = formatDateToOutput(groupToEdit.eventDate);
 
     await ctx.reply(
-      `Вы уверены, что хотите удалить группу "${groupToEdit.name}, ${formattedDate}"?`,
+      `Вы уверены, что хотите удалить группу "${groupToEdit.telegramGroupName}, ${formattedDate}"?`,
       confirmKeyboard
     );
 
