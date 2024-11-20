@@ -2,11 +2,13 @@ import {Telegraf, session} from 'telegraf';
 import config from '../config';
 import {SantaContext} from './../types';
 import {startCommand} from './commands/private/start';
+import {setWishesCommand} from './commands/private/setWishes';
 
 const bot = new Telegraf<SantaContext>(config.telegramBotToken);
 
 bot.use(session());
 startCommand(bot);
+setWishesCommand(bot);
 bot.command('info', ctx =>
   ctx.reply(
     '🎅 Я — бот *Тайный Санта* и помогу облегчить подготовку к Новому Году\\!\n\n' +
