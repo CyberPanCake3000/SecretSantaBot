@@ -1,7 +1,7 @@
 import {Scenes, Markup, Telegraf} from 'telegraf';
-import {User, IUser} from '../../../db/models/user';
-import {Group, IGroup} from '../../../db/models/group';
 import {SantaContext} from '../../../types';
+import {UserService} from '../../../services/user-service';
+import {GroupService} from '../../../services/group-service';
 
 const messages = {
   PRIVATE_WELCOME: {
@@ -42,10 +42,11 @@ class ButtonFactory {
       [
         Markup.button.callback(
           '🎁 Оставить свои пожелания Тайному Санте',
-          'setWishes'
+          'setwishes'
         ),
       ],
-      [Markup.button.callback('❔ Узнать кому я дарю подарок', 'myWard')],
+      [Markup.button.callback('👥 Узнать информацию о группе', 'groupinfo')],
+      [Markup.button.callback('❔ Узнать кому я дарю подарок', 'myward')],
     ];
   }
 
@@ -58,48 +59,6 @@ class ButtonFactory {
         ),
       ],
     ];
-  }
-}
-
-class UserService {
-  static async createUser(ctx: SantaContext): Promise<IUser> {
-    const user = new User({
-      telegramId: ctx.from?.id,
-      telegramUsername: ctx.from?.username,
-      telegramFirstName: ctx.from?.first_name,
-      telegramLastName: ctx.from?.last_name,
-    });
-    return await user.save();
-  }
-
-  static async findUser(telegramId: number): Promise<IUser | null> {
-    return await User.findOne({telegramId});
-  }
-}
-
-class GroupService {
-  static async findGroup(telegramGroupId: number): Promise<IGroup | null> {
-    return await Group.findOne({telegramGroupId});
-  }
-
-  static async createOrGetGroup(ctx: SantaContext): Promise<IGroup> {
-    const existingGroup = await this.findGroup(ctx.chat?.id || 0);
-
-    if (existingGroup) return existingGroup;
-
-    const group = new Group({
-      telegramGroupName: ctx.getChat.name || '',
-      telegramGroupId: ctx.chat?.id,
-      adminTelegramId: ctx.from?.id,
-      adminUsername: ctx.from?.username,
-      eventDate: new Date(),
-      minPrice: 0,
-      maxPrice: 0,
-    });
-
-    const savedGroup = await group.save();
-    ctx.scene.session.currentGroup = savedGroup;
-    return savedGroup;
   }
 }
 
