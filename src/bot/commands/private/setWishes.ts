@@ -2,24 +2,7 @@ import {Telegraf, Scenes, Markup} from 'telegraf';
 import {User} from '../../../db/models/user';
 import {SantaContext} from '../../../types';
 import {UserService} from '../../../services/user-service';
-
-const messages = {
-  REGISTRATION_REQUIRED:
-    '🎯 Для заполнения пожеланий нужно зарегистрироваться, введите команду /start',
-  WISHES_PROMPT: `🎁 *Настройка пожеланий для подарка*
-
-✍️ Пожалуйста, напишите ваши пожелания:
-• что вам нравится
-• какие у вас хобби
-• что бы вы хотели получить
-
-💫 Ваши пожелания помогут Тайному Санте выбрать идеальный подарок и сделать праздник действительно волшебным!`,
-  TEXT_REQUIRED: '📝 Пожалуйста, введите ваши пожелания текстом',
-  USER_NOT_FOUND: '❌ Не удалось получить информацию о пользователе.',
-  UPDATE_ERROR:
-    '❌ Произошла ошибка при обновлении пожеланий. Пожалуйста, попробуйте позже.',
-  UPDATE_SUCCESS: '✅ Ваши пожелания успешно обновлены!',
-};
+import {privateMessages} from '../../../constants/private-messages';
 
 interface WishesUpdateResult {
   success: boolean;
@@ -41,19 +24,19 @@ class WishesService {
       if (!user) {
         return {
           success: false,
-          message: messages.UPDATE_ERROR,
+          message: privateMessages.UPDATE_ERROR,
         };
       }
 
       return {
         success: true,
-        message: messages.UPDATE_SUCCESS,
+        message: privateMessages.UPDATE_SUCCESS,
       };
     } catch (error) {
       console.error('Error updating wishes:', error);
       return {
         success: false,
-        message: messages.UPDATE_ERROR,
+        message: privateMessages.UPDATE_ERROR,
       };
     }
   }
@@ -65,12 +48,12 @@ class WishesSceneHandler {
 
     const user = await UserService.findUser(ctx.from.id);
     if (!user) {
-      await ctx.reply(messages.REGISTRATION_REQUIRED);
+      await ctx.reply(privateMessages.REGISTRATION_REQUIRED);
       await ctx.scene.leave();
       return;
     }
 
-    await ctx.reply(messages.WISHES_PROMPT, {
+    await ctx.reply(privateMessages.WISHES_PROMPT, {
       parse_mode: 'Markdown',
     });
 
@@ -79,13 +62,13 @@ class WishesSceneHandler {
 
   static async handleWishesInput(ctx: SantaContext) {
     if (!ctx.message || !('text' in ctx.message)) {
-      await ctx.reply(messages.TEXT_REQUIRED);
+      await ctx.reply(privateMessages.TEXT_REQUIRED);
       return;
     }
 
     const userId = ctx.from?.id;
     if (!userId) {
-      await ctx.reply(messages.USER_NOT_FOUND);
+      await ctx.reply(privateMessages.USER_NOT_FOUND);
       return ctx.scene.leave();
     }
 
