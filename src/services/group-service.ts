@@ -7,12 +7,17 @@ export class GroupService {
   }
 
   static async createOrGetGroup(ctx: SantaContext): Promise<IGroup> {
-    const existingGroup = await this.findGroup(ctx.chat?.id || 0);
+    if (!ctx.chat?.id) {
+      throw new Error('No chatId found');
+    }
+    const existingGroup = await this.findGroup(ctx.chat?.id);
 
     if (existingGroup) return existingGroup;
 
+    const chatInfo = await ctx.telegram.getChat(ctx.chat?.id);
     const group = new Group({
-      telegramGroupName: ctx.getChat.name || '',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      telegramGroupName: (chatInfo as any).title || '',
       telegramGroupId: ctx.chat?.id,
       adminTelegramId: ctx.from?.id,
       adminUsername: ctx.from?.username,
