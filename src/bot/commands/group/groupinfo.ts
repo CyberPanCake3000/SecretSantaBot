@@ -3,18 +3,6 @@ import {SantaContext} from '../../../types';
 import {User} from '../../../db/models/user';
 import {formatDateToOutput} from '../../../utils/formatDateToOutput';
 
-interface GroupInfoData {
-  name: string;
-  eventDate: Date;
-  eventInfo: string;
-  adminTelegramId: number;
-  giftPriceRange: {
-    min: number;
-    max: number;
-  };
-  drawStatus: string;
-}
-
 // TODO: избавиться от any!! и использовать GroupInfoData
 const formatGroupInfo = async (group: any) => {
   const admin = await User.findOne(

@@ -2,45 +2,8 @@ import {Telegraf, Scenes, Markup} from 'telegraf';
 import {User} from '../../../db/models/user';
 import {SantaContext} from '../../../types';
 import {UserService} from '../../../services/user-service';
-import {privateMessages} from '../../../constants/private-messages';
-
-interface WishesUpdateResult {
-  success: boolean;
-  message: string;
-}
-
-class WishesService {
-  static async updateUserWishes(
-    userId: number,
-    wishes: string
-  ): Promise<WishesUpdateResult> {
-    try {
-      const user = await User.findOneAndUpdate(
-        {telegramId: userId},
-        {wishes},
-        {new: true}
-      );
-
-      if (!user) {
-        return {
-          success: false,
-          message: privateMessages.UPDATE_ERROR,
-        };
-      }
-
-      return {
-        success: true,
-        message: privateMessages.UPDATE_SUCCESS,
-      };
-    } catch (error) {
-      console.error('Error updating wishes:', error);
-      return {
-        success: false,
-        message: privateMessages.UPDATE_ERROR,
-      };
-    }
-  }
-}
+import {PRIVATE_MESSAGES} from '../../../constants/private-messages';
+import {BUTTONS} from '../../../constants/buttons';
 
 class WishesSceneHandler {
   static async handleInitialStep(ctx: SantaContext) {
@@ -48,12 +11,12 @@ class WishesSceneHandler {
 
     const user = await UserService.findUser(ctx.from.id);
     if (!user) {
-      await ctx.reply(privateMessages.REGISTRATION_REQUIRED);
+      await ctx.reply(PRIVATE_MESSAGES.REGISTRATION_REQUIRED);
       await ctx.scene.leave();
       return;
     }
 
-    await ctx.reply(privateMessages.WISHES_PROMPT, {
+    await ctx.reply(PRIVATE_MESSAGES.WISHES_PROMPT, {
       parse_mode: 'Markdown',
     });
 
@@ -62,23 +25,38 @@ class WishesSceneHandler {
 
   static async handleWishesInput(ctx: SantaContext) {
     if (!ctx.message || !('text' in ctx.message)) {
-      await ctx.reply(privateMessages.TEXT_REQUIRED);
+      await ctx.reply(PRIVATE_MESSAGES.TEXT_REQUIRED);
       return;
     }
 
     const userId = ctx.from?.id;
     if (!userId) {
-      await ctx.reply(privateMessages.USER_NOT_FOUND);
+      await ctx.reply(PRIVATE_MESSAGES.USER_NOT_FOUND);
       return ctx.scene.leave();
     }
 
-    const preferences = ctx.message.text.trim();
-    const result = await WishesService.updateUserWishes(userId, preferences);
+    const wishes = ctx.message.text.trim();
+    let message = '';
     const buttons = Markup.inlineKeyboard([
-      [Markup.button.callback('Отказаться от участия', 'quit')],
-      [Markup.button.callback('Узнать информацию о группе', 'groupinfo')],
+      [BUTTONS.QUIT],
+      [BUTTONS.GROUP_INFO],
     ]);
-    await ctx.reply(result.message, buttons);
+
+    try {
+      const user = await User.findOneAndUpdate(
+        {telegramId: userId},
+        {wishes},
+        {new: true}
+      );
+
+      message = user
+        ? PRIVATE_MESSAGES.UPDATE_SUCCESS
+        : PRIVATE_MESSAGES.UPDATE_ERROR;
+    } catch (error) {
+      console.error('Error updating wishes:', error);
+      message = PRIVATE_MESSAGES.UPDATE_ERROR;
+    }
+    await ctx.reply(message, buttons);
     return ctx.scene.leave();
   }
 }
