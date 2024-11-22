@@ -22,7 +22,6 @@ export class GroupService {
     });
 
     const savedGroup = await group.save();
-    ctx.scene.session.currentGroup = savedGroup;
     return savedGroup;
   }
 }

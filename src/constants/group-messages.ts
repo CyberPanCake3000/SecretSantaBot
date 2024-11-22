@@ -1,4 +1,4 @@
-export const groupMessages = {
+export const GROUP_MESSAGES = {
   WELCOME: (adminMention: string) =>
     `🎅 Привет всем!
 Я бот Тайный Санта, и я помогу организовать веселый обмен подарками!
