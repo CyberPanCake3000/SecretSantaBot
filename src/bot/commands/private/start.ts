@@ -23,7 +23,7 @@ class SceneHandler {
     if (!user) {
       await ctx.reply(
         PRIVATE_MESSAGES.WELCOME.REGISTRATION_MEMBER,
-        INLINE_KEYBOARDS.WELCOME_PRIVATE_MENU(ctx.botInfo?.username || '')
+        INLINE_KEYBOARDS.WELCOME_NEW_USER
       );
       await UserService.createUser(ctx);
     } else {

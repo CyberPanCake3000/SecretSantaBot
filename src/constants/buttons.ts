@@ -10,6 +10,11 @@ export const BUTTONS = {
     '🎁 Оставить свои пожелания Тайному Санте',
     'setwishes'
   ),
+  REGISTRATION: Markup.button.callback('Зарегистрироваться', 'registration'),
+  CREATE_GROUP: Markup.button.callback(
+    'Создать группу для игры в Тайного Санту',
+    'create'
+  ),
   GROUP_INFO: Markup.button.callback(
     '👥 Узнать информацию о группе',
     'groupinfo'
@@ -24,6 +29,7 @@ export const BUTTONS = {
 };
 
 export const INLINE_KEYBOARDS = {
+  WELCOME_NEW_USER: Markup.inlineKeyboard([[BUTTONS.CREATE_GROUP]]),
   WELCOME_PRIVATE_MENU: (botUsername: string) =>
     Markup.inlineKeyboard([
       [BUTTONS.ADD_SECRET_SANTA_TO_CHAT(botUsername)],
@@ -31,6 +37,11 @@ export const INLINE_KEYBOARDS = {
       [BUTTONS.MY_WARD],
       [BUTTONS.GROUP_INFO],
     ]),
+  WELCOME_REGISTRATION: Markup.inlineKeyboard([
+    [BUTTONS.REGISTRATION],
+    [BUTTONS.GROUP_INFO],
+    [BUTTONS.MY_WARD],
+  ]),
   WELCOME_GROUP_MENU: (botUsername: string, chatId: number) =>
     Markup.inlineKeyboard([
       [BUTTONS.GO_TO_REGISTRATION(botUsername, chatId)],
