@@ -8,25 +8,34 @@ export class GroupService {
 
   static async createOrGetGroup(ctx: SantaContext): Promise<IGroup> {
     if (!ctx.chat?.id) {
-      throw new Error('No chatId found');
+      throw new Error('No chat ID found');
     }
-    const existingGroup = await this.findGroup(ctx.chat?.id);
 
-    if (existingGroup) return existingGroup;
+    if (!ctx.from?.id) {
+      throw new Error('No admin ID found');
+    }
 
-    const chatInfo = await ctx.telegram.getChat(ctx.chat?.id);
+    const existingGroup = await this.findGroup(ctx.chat.id);
+    if (existingGroup) {
+      return existingGroup;
+    }
+
+    const chatInfo = await ctx.getChat();
+    if (chatInfo.type !== 'group' && chatInfo.type !== 'supergroup') {
+      throw new Error('Invalid chat type. Must be group or supergroup');
+    }
+
     const group = new Group({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      telegramGroupName: (chatInfo as any).title || '',
-      telegramGroupId: ctx.chat?.id,
-      adminTelegramId: ctx.from?.id,
-      adminUsername: ctx.from?.username,
-      eventDate: new Date(),
+      telegramGroupName: chatInfo.title || 'Unnamed Group',
+      telegramGroupId: chatInfo.id,
+      adminTelegramId: ctx.from.id,
+      adminUsername: ctx.from.username || '',
       minPrice: 0,
       maxPrice: 0,
+      isActive: true,
+      isDraw: false,
     });
 
-    const savedGroup = await group.save();
-    return savedGroup;
+    return await group.save();
   }
 }

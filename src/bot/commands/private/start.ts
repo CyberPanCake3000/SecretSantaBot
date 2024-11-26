@@ -56,7 +56,6 @@ class SceneHandler {
     if (!ctx.chat?.id || !ctx.from?.id) return;
 
     const groupInfo = await GroupService.createOrGetGroup(ctx);
-
     const admin = await ctx.telegram.getChatMember(
       ctx.chat?.id || 0,
       groupInfo.adminTelegramId

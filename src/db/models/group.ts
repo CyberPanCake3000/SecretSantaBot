@@ -46,7 +46,7 @@ export const GroupSchema: Schema = new Schema({
   },
   eventDate: {
     type: Date,
-    required: true,
+    default: '',
   },
   eventInfo: {
     type: String,
