@@ -5,7 +5,7 @@ import {GroupService} from '../../../services/group-service';
 import {GROUP_MESSAGES} from '../../../constants/group-messages';
 import {PRIVATE_MESSAGES} from '../../../constants/private-messages';
 import {INLINE_KEYBOARDS} from '../../../constants/buttons';
-
+import {Group} from '../../../db/models/group';
 type ChatType = 'private' | 'group' | 'supergroup';
 
 class SceneHandler {
@@ -42,7 +42,7 @@ class SceneHandler {
       await UserService.createUser(ctx);
       await ctx.reply(
         PRIVATE_MESSAGES.WELCOME.NEW,
-        INLINE_KEYBOARDS.WELCOME_PRIVATE_MENU(ctx.botInfo?.username || '')
+        INLINE_KEYBOARDS.WELCOME_NEW_USER
       );
     } else {
       await ctx.reply(
@@ -52,12 +52,42 @@ class SceneHandler {
     }
   }
 
+  static async handleNewGroupChat(ctx: SantaContext, groupId: string) {
+    if (!ctx.chat?.id) throw new Error('No chat info');
+
+    const group = await Group.findOne({_id: groupId});
+    if (!group) throw new Error('No group found');
+
+    if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+      group.telegramGroupId = ctx.chat.id;
+      group.telegramGroupName = ctx.chat.title || '';
+      await group.save();
+    }
+
+    const admin = await ctx.telegram.getChatMember(
+      ctx.chat.id,
+      group.adminTelegramId
+    );
+
+    const adminMention = admin.user.username
+      ? `@${admin.user.username}`
+      : `[${admin.user.first_name}](tg://user?id=${admin.user.id})`;
+
+    await ctx.reply(
+      GROUP_MESSAGES.WELCOME(adminMention),
+      INLINE_KEYBOARDS.WELCOME_GROUP_MENU(
+        ctx.botInfo?.username || '',
+        ctx.chat.id
+      )
+    );
+  }
+
   static async handleGroupChat(ctx: SantaContext): Promise<void> {
     if (!ctx.chat?.id || !ctx.from?.id) return;
 
     const groupInfo = await GroupService.createOrGetGroup(ctx);
     const admin = await ctx.telegram.getChatMember(
-      ctx.chat?.id || 0,
+      ctx.chat?.id,
       groupInfo.adminTelegramId
     );
 
@@ -88,7 +118,11 @@ const startWizard = new Scenes.WizardScene<SantaContext>('start', async ctx => {
       await SceneHandler.handlePrivateChat(ctx);
     }
   } else if (['group', 'supergroup'].includes(chatType)) {
-    await SceneHandler.handleGroupChat(ctx);
+    if (payload) {
+      await SceneHandler.handleNewGroupChat(ctx, payload);
+    } else {
+      await SceneHandler.handleGroupChat(ctx);
+    }
   }
 
   return ctx.scene.leave();
