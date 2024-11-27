@@ -31,11 +31,9 @@ export interface IGroup extends Document {
 export const GroupSchema: Schema = new Schema({
   telegramGroupName: {
     type: String,
-    required: true,
   },
   telegramGroupId: {
     type: String,
-    required: true,
   },
   adminTelegramId: {
     type: Number,

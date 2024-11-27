@@ -1,7 +1,7 @@
 import {Context, Scenes} from 'telegraf';
 import {IGroup} from '../db/models/group';
 
-interface GroupWizardData {
+export interface GroupWizardData {
   minPrice?: number;
   maxPrice?: number;
   eventDate?: Date;
