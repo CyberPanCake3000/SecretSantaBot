@@ -19,18 +19,66 @@ class SceneHandler {
       return ctx.scene.leave();
     }
 
-    const user = await UserService.findUser(ctx.from?.id || 0);
+    if (!ctx.from?.id) throw new Error('No user found');
+    let user = await UserService.findUser(ctx.from?.id);
+
+    if (
+      user &&
+      user.groups.some(g => g.groupId.toString() === group._id.toString())
+    ) {
+      await ctx.reply(PRIVATE_MESSAGES.WELCOME.ALREADY_REGISTERED);
+      return ctx.scene.leave();
+    }
+
     if (!user) {
-      await ctx.reply(
-        PRIVATE_MESSAGES.WELCOME.REGISTRATION_MEMBER,
-        INLINE_KEYBOARDS.WELCOME_NEW_USER
+      user = await UserService.createUser(ctx);
+    }
+
+    try {
+      user.groups.push({
+        groupId: group._id,
+        role: 'participant',
+        participationStatus: 'pending',
+        notificationEnabled: true,
+      });
+      await user.save();
+
+      group.participants.push({
+        userTelegramId: ctx.from?.id || 0,
+        username: ctx.from?.username || ctx.from?.first_name || 'Аноним',
+        joinedAt: new Date(),
+        participationStatus: 'pending',
+      });
+      await group.save();
+
+      await ctx.telegram.sendMessage(
+        group.telegramGroupId,
+        `🎅 К игре присоединился новый участник: ${ctx.from?.username ? '@' + ctx.from.username : ctx.from?.first_name}!`
       );
-      await UserService.createUser(ctx);
-    } else {
+
       await ctx.reply(
-        PRIVATE_MESSAGES.WELCOME.EXISTING_MEMBER,
-        INLINE_KEYBOARDS.WELCOME_PRIVATE_MENU(ctx.botInfo?.username || '')
+        'Вы успешно зарегистрировались в игре Тайный Санта!\n\n' +
+          `📅 Дата мероприятия: ${group.eventDate.toLocaleDateString()}\n` +
+          `💰 Бюджет подарка: от ${group.minPrice} до ${group.maxPrice} рублей\n` +
+          `ℹ️ ${group.eventInfo ? `Дополнительная информация: ${group.eventInfo}` : ''}\n\n` +
+          'Используйте команду /setwishes чтобы указать ваши пожелания для подарка.'
       );
+    } catch (error) {
+      console.error('Error registering user to group:', error);
+      await ctx.reply(PRIVATE_MESSAGES.REGISTRATION_ERROR);
+
+      if (user.groups.length > 0) {
+        user.groups = user.groups.filter(
+          g => g.groupId.toString() !== group._id.toString()
+        );
+        await user.save();
+      }
+      if (group.participants.length > 0) {
+        group.participants = group.participants.filter(
+          p => p.userTelegramId !== ctx.from?.id
+        );
+        await group.save();
+      }
     }
   }
 

@@ -6,14 +6,12 @@ export interface IUser extends Document {
   telegramFirstName: string;
   telegramLastName?: string;
   wishes: string;
-  groups: [
-    {
-      groupId: ObjectId;
-      role: String;
-      participationStatus: String;
-      notificationEnabled: Boolean;
-    },
-  ];
+  groups: {
+    groupId: ObjectId;
+    role: String;
+    participationStatus: String;
+    notificationEnabled: Boolean;
+  }[];
 }
 
 const UserGroupSchema = new Schema({
